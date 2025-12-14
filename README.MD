@@ -2,20 +2,24 @@
 
 This repository contains a complete solution to the task “Build a Chat Over Tabular Data (RAG-style)”.
 
-The system answers natural-language questions over structured Excel data by using a Text-to-SQL RAG architecture:
+The system answers natural-language questions over structured Excel data using a Text-to-SQL RAG architecture:
 
-1. **Natural-language question → SQL (via LLM)**
-2. **SQL executed on an in-memory SQLite database**
-3. **Retrieved rows/aggregates passed back to the LLM**
-4. **Final answer is generated strictly grounded in the retrieved data**
+1. A user asks a question in natural language
+2. An LLM translates the question into SQL
+3. The SQL is executed on an in-memory SQLite database
+4. The retrieved rows and aggregates are passed back to the LLM
+5. The final answer is generated strictly grounded in the retrieved data
 
-## The project includes:
-- A FastAPI backend (Text-to-SQL + execution)
-- A Streamlit frontend (UI)
+## The Project
+
+The project is implemented as a multi-service application with:
+- A FastAPI backend
+- A Streamlit frontend
 - An optional CLI client
-- Full Docker + Docker Compose setup for production-like execution
+- Full Docker + Docker Compose setup
 
 ## Data
+
 The system operates on the following Excel files (included in the repository):
 - `Clients.xlsx` – client information (name, industry, country)
 - `Invoices.xlsx` – invoice headers (dates, status, currency, FX rates)
@@ -24,21 +28,20 @@ The system operates on the following Excel files (included in the repository):
 All data fits in memory, as assumed by the task.
 
 ## What the System Can Answer
+
 The chat can answer questions such as:
 - List all clients with their industries.
 - Which clients are based in the UK?
 - List all invoices issued in March 2024 with their statuses.
 - Which invoices are currently marked as "Overdue"?
-- For each service_name, how many line items are there?
+- For each `service_name`, how many line items are there?
 - List all invoices for Acme Corp with invoice IDs, dates, due dates, and statuses.
 - Show all invoices issued to Bright Legal in February 2024.
 - For invoice I1001, list all line items and compute totals including tax.
 - For each client, compute the total amount billed in 2024 (including tax).
 - Which client has the highest total billed amount in 2024?
 
-Optional / extended analytics are also supported (top services by revenue, overdue invoices as of a date, revenue by country, etc.).
-
-None of these questions are hard-coded.
+These questions are not hard-coded and are handled via Text-to-SQL.
 
 ## Architecture Overview
 
@@ -58,6 +61,7 @@ Answer Generation (LLM, grounded)
 ```
 
 ### Key design choice: Text-to-SQL
+
 Instead of manually routing questions to predefined pandas functions, the system uses an LLM to generate SQL based on:
 - The database schema
 - Explicit business rules (tax, FX conversion, revenue calculation)
@@ -72,27 +76,26 @@ This makes the solution flexible, extensible, and closer to real production syst
 │   ├── Invoices.xlsx
 │   └── InvoiceLineItems.xlsx
 │
-├── tabular_rag/
-│   ├── data_loader.py
-│   ├── llm_client.py
-│   ├── sql_engine.py
-│   ├── text2sql_planner.py
-│   └── sql_chat_pipeline.py
+├── backend/
+│   ├── backend_api.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── tabular_rag/
+│       ├── data_loader.py
+│       ├── llm_client.py
+│       ├── sql_engine.py
+│       ├── text2sql_planner.py
+│       └── sql_chat_pipeline.py
 │
-├── backend_api.py          # FastAPI backend
-├── frontend_app.py         # Streamlit frontend
-├── cli_client.py           # Optional CLI client
-├── generate_test_results.py
-├── test_results.csv
+├── frontend/
+│   ├── frontend_app.py
+│   ├── requirements.txt
+│   └── Dockerfile
 │
-├── docker/
-│   ├── backend.Dockerfile
-│   └── frontend.Dockerfile
+├── cli/
+│   └── cli_client.py
 │
 ├── docker-compose.yml
-├── requirements-common.txt
-├── requirements-backend.txt
-├── requirements-frontend.txt
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -100,22 +103,21 @@ This makes the solution flexible, extensible, and closer to real production syst
 
 ## Environment Configuration
 
-### .env.example
-The repository includes an example environment file:
+### `.env.example`
+
+An example environment file is provided:
 ```
 OPENAI_API_KEY=sk-your-openai-key-here
 OPENAI_MODEL=gpt-4.1-mini
 BACKEND_URL=http://backend:8000
 ```
 
-### Setup
 Create your own `.env` file:
-```bash
+```
 cp .env.example .env
 ```
-Edit `.env` and set your real OpenAI API key.
 
-**Do not commit `.env`.**
+Edit `.env` and set your real OpenAI API key.
 
 ## Running the Full Application (Recommended)
 
@@ -124,25 +126,27 @@ Edit `.env` and set your real OpenAI API key.
 - Docker Compose
 
 ### Start everything
-```bash
+From the repository root:
+```
 docker compose up --build
 ```
 
 Expected behavior:
-- First build: ~2–3 minutes (dependency installation)
+- First run: ~2–3 minutes (dependency installation)
 - Backend API available at: `http://localhost:8000`
 - Frontend UI available at: `http://localhost:8501`
 
 ### Health check
-```bash
+```
 curl http://localhost:8000/health
 ```
 Expected response:
-```json
+```
 {"status":"ok"}
 ```
 
 ## Frontend (Streamlit UI)
+
 Open in browser:
 ```
 http://localhost:8501
@@ -153,14 +157,17 @@ The UI shows:
 - Generated SQL
 - Retrieved rows (table)
 - Final grounded answer
+- A "Clear chat history" button to reset the conversation
 
 This transparency helps verify correctness and grounding.
 
 ## Backend API
 
 ### Endpoint: `/ask`
+
 #### POST `/ask`
-Request:
+
+Request example:
 ```json
 {
   "question": "Which clients are based in the UK?",
@@ -169,7 +176,8 @@ Request:
   "max_rows": 50
 }
 ```
-Response:
+
+Response example:
 ```json
 {
   "question": "...",
@@ -181,22 +189,12 @@ Response:
 ```
 
 ## CLI Client (Optional)
-You can also interact via CLI:
-```bash
-BACKEND_URL=http://localhost:8000 python cli_client.py
-```
-This CLI calls the backend API and prints:
-- Answer
-- Generated SQL
 
-## Test Results Table
-To generate answers for the official example questions:
-```bash
-python generate_test_results.py
+You can also interact via a CLI client that calls the backend API:
 ```
-This creates `test_results.csv` with two columns:
-- Question
-- Answer (generated by the pipeline)
+export BACKEND_URL=http://localhost:8000
+python cli/cli_client.py
+```
 
 ## Business Logic
 
@@ -210,36 +208,39 @@ quantity * unit_price * (1 + tax_rate)
 line_total * fx_rate_to_usd
 ```
 
-Revenue calculations are performed using SQL aggregates, not by the LLM.
+Revenue and aggregations are computed in SQL, not by the LLM.
 
 ## Hallucination Mitigation
+
 The system is designed to avoid numeric hallucinations:
-- LLM generates SQL, not numbers.
-- All computations happen in SQLite.
-- The LLM only sees retrieved rows/aggregates.
-- If data is missing, the model is instructed to say so explicitly.
+- The LLM generates SQL, not numeric values.
+- All computations are performed by SQLite.
+- The LLM only sees retrieved rows and aggregates.
+- If data is missing, the model is instructed to state that explicitly.
 
 ## Assumptions & Limitations
 - All data fits in memory.
 - Read-only analytical queries only (SELECT).
 - No authentication or authorization layer.
-- LLM quality affects Text-to-SQL accuracy.
+- Text-to-SQL quality depends on the LLM.
 - Optimized for clarity and correctness rather than large-scale deployment.
 
 ## Switching LLM Providers
+
 All LLM calls are centralized in `llm_client.py`.
+
 To switch providers (e.g. OpenAI → Groq):
 - Replace the client implementation
 - Update environment variables
-
-No other code changes required.
+- No other code changes required
 
 ## Summary
+
 This project demonstrates:
 - A clean Text-to-SQL RAG architecture
 - Strong grounding and hallucination mitigation
-- Clear separation between retrieval and generation
+- Clear separation between backend and frontend
 - Production-style execution using Docker Compose
-- Simple, inspectable UI and API
+- Transparent, inspectable outputs (SQL + rows)
 
-The solution prioritizes correctness, transparency, and maintainability.
+The solution prioritizes correctness, clarity, and maintainability.

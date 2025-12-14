@@ -15,27 +15,9 @@ st.write(
 if "history" not in st.session_state:
     st.session_state.history = []
 
-with st.sidebar:
-    st.header("Controls")
-    st.write(f"Backend: `{BACKEND_URL}`")
-    if st.button("Clear chat"):
-        st.session_state.history = []
-        st.rerun()
-
-    st.markdown("---")
-    st.subheader("Examples")
-    examples = [
-        "Which clients are based in the UK?",
-        "List all invoices issued in March 2024 with their statuses.",
-        "Which invoices are currently marked as \"Overdue\"?",
-        "For each service_name in InvoiceLineItems, how many line items are there?",
-        "For invoice I1001, list all line items with totals including tax.",
-        "Which client has the highest total billed amount in 2024, and what is that total?",
-    ]
-    for ex in examples:
-        if st.button(ex):
-            st.session_state.pending_question = ex
-            st.rerun()
+if st.button("Clear chat"):
+    st.session_state.history = []
+    st.rerun()
 
 question = st.text_input(
     "Your question",
@@ -43,12 +25,11 @@ question = st.text_input(
     placeholder="e.g., Which clients are based in the UK?",
 )
 
-colA, colB, colC = st.columns([1, 1, 1])
+colA, colB = st.columns([1, 1])
 return_sql = colA.checkbox("Show SQL", value=True)
 return_rows = colB.checkbox("Show rows", value=True)
-max_rows = colC.number_input("Max rows", min_value=1, max_value=200, value=50)
 
-ask = st.button("Ask")
+ask = st.button("Ask") or st.session_state.pop("trigger_ask", False)  # Check the flag
 
 if ask and question.strip():
     with st.spinner("Calling backend..."):
@@ -58,7 +39,7 @@ if ask and question.strip():
                 "question": question,
                 "return_sql": return_sql,
                 "return_rows": return_rows,
-                "max_rows": int(max_rows),
+                "max_rows": 50,  # Default max rows
             },
             timeout=120,
         )
@@ -81,7 +62,7 @@ for item in reversed(st.session_state.history):
         st.write(item["answer"])
 
     if item.get("rows") is not None:
-        st.markdown(f"### Retrieved rows (showing up to {max_rows}, total rows: {item.get('num_rows', 0)})")
+        st.markdown("### Retrieved rows")
         st.dataframe(item["rows"])
 
     st.markdown("---")
