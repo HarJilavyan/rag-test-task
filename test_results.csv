@@ -1,0 +1,103 @@
+Question,Answer
+List all clients with their industries.,"Here is a list of clients along with their industries:
+
+1. Acme Corp - Manufacturing
+2. Bright Legal - Legal
+3. Summit Finance - Financial Services
+4. GreenField Retail - Retail
+5. Northwind Logistics - Logistics
+6. BlueSky Consulting - Consulting
+7. Nova Health - Healthcare
+8. Urban Tech - Technology
+9. RedRock Energy - Energy
+10. Silverline Media - Media
+11. Zenith Education - Education
+12. Alpine Hospitality - Hospitality
+13. Orion Security - Security
+14. Pacific Foods - Food & Beverage
+15. Metro Transport - Transportation
+16. Vertex Analytics - Technology
+17. Harbor Insurance - Insurance
+18. Crescent Pharma - Pharmaceuticals
+19. Aurora Textiles - Manufacturing
+20. Prairie Agriculture - Agriculture"
+Which clients are based in the UK?,The clients based in the UK are Bright Legal and Silverline Media.
+List all invoices issued in March 2024 with their statuses.,"In March 2024, two invoices were issued. Both invoices, I1003 and I1004, have been marked as ""Paid."""
+"Which invoices are currently marked as ""Overdue""?","The invoices currently marked as ""Overdue"" are: I1002, I1005, I1009, I1013, I1015, I1020, I1028, I1032, and I1038."
+"For each service_name in InvoiceLineItems, how many line items are there?","Here is the count of line items for each service name:
+
+- Contract Review: 11 line items
+- Court Appearance: 13 line items
+- Custom Reporting: 11 line items
+- IT Security Assessment: 14 line items
+- M&A Advisory: 16 line items
+- Regulatory Compliance Audit: 10 line items
+- Tax Planning: 14 line items
+- Training Session: 7 line items
+
+Let me know if you need further details!"
+"List all invoices for Acme Corp with their invoice IDs, invoice dates, due dates, and statuses.","Here are the invoices for Acme Corp:
+
+1. **Invoice ID:** I1001
+   - **Invoice Date:** January 10, 2024
+   - **Due Date:** February 10, 2024
+   - **Status:** Paid
+
+2. **Invoice ID:** I1004
+   - **Invoice Date:** March 20, 2024
+   - **Due Date:** April 20, 2024
+   - **Status:** Paid
+
+3. **Invoice ID:** I1022
+   - **Invoice Date:** October 15, 2024
+   - **Due Date:** November 14, 2024
+   - **Status:** Paid
+
+All listed invoices are marked as paid."
+"Show all invoices issued to Bright Legal in February 2024, including their status and currency.","In February 2024, there was one invoice issued to Bright Legal. The invoice ID is I1002, dated February 15, 2024. It is currently marked as ""Overdue"" and is in EUR currency."
+"For invoice I1001, list all line items with service name, quantity, unit price, tax rate, and compute the line total (including tax) for each.","For invoice I1001, the line items are as follows:
+
+1. **Court Appearance**
+   - Quantity: 1
+   - Unit Price: 500
+   - Tax Rate: 20%
+   - Line Total (including tax): 600.0
+
+2. **M&A Advisory**
+   - Quantity: 2
+   - Unit Price: 200
+   - Tax Rate: 0%
+   - Line Total (including tax): 400.0
+
+3. **Court Appearance**
+   - Quantity: 5
+   - Unit Price: 300
+   - Tax Rate: 0%
+   - Line Total (including tax): 1500.0
+
+Each line total includes the applicable tax."
+"For each client, compute the total amount billed in 2024 (including tax) across all their invoices.","Here is the total amount billed in 2024 (including tax) for each client:
+
+- **Acme Corp**: $6,830.00
+- **Bright Legal**: $3,949.00
+- **Summit Finance**: $2,582.00
+- **GreenField Retail**: $3,583.38
+- **Northwind Logistics**: $1,829.69
+- **BlueSky Consulting**: $3,892.23
+- **Nova Health**: $3,696.00
+- **Urban Tech**: $2,938.44
+- **RedRock Energy**: $526.30
+- **Silverline Media**: $4,843.00
+- **Zenith Education**: $5,407.50
+- **Alpine Hospitality**: $3,791.56
+- **Orion Security**: $4,404.50
+- **Pacific Foods**: $1,257.48
+- **Metro Transport**: $3,641.00
+- **Vertex Analytics**: $6,106.00
+- **Harbor Insurance**: $3,487.50
+- **Crescent Pharma**: $28.82
+- **Aurora Textiles**: $5,433.84
+- **Prairie Agriculture**: $389.79
+
+These figures represent the total billed amounts in USD, including tax, for each client in 2024."
+"Which client has the highest total billed amount in 2024, and what is that total?","The client with the highest total billed amount in 2024 is Acme Corp, with a total of $6,830.00."

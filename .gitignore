@@ -1,1 +1,74 @@
-.question-complexity.md
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+.env/
+.env.*
+
+# =========================
+# Jupyter / notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# OS / Editor files
+# =========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Streamlit
+# =========================
+.streamlit/
+
+# =========================
+# Docker
+# =========================
+# Local overrides (optional)
+docker-compose.override.yml
+
+# =========================
+# Data artifacts (keep raw Excel files!)
+# =========================
+# Do NOT ignore data/*.xlsx
+# Only ignore generated artifacts
+*.csv~
+*.tmp
+
+# =========================
+# Test / cache outputs
+# =========================
+.cache/
+pytest_cache/
+
+# =========================
+# Secrets
+# =========================
+.env
+.env.local
+.env.dev
+.env.prod
+
+# =========================
+# Mac / Linux
+# =========================
+.AppleDouble
+.LSOverride

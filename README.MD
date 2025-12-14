@@ -1,85 +1,245 @@
-# Task: Build a Chat Over Tabular Data (RAG-style)
+# Chat Over Tabular Data (Text-to-SQL RAG)
 
-You are given several Excel files that represent tables from a small business database:
+This repository contains a complete solution to the task “Build a Chat Over Tabular Data (RAG-style)”.
 
-- `Clients.xlsx` – information about clients
-- `Invoices.xlsx` – invoices, dates, amounts, client IDs
-- `InvoiceLineItems.xlsx` – line items for each invoice (service, quantity, rate, tax, etc.)
+The system answers natural-language questions over structured Excel data by using a Text-to-SQL RAG architecture:
 
-Your task is to build a question-answering chat that can answer natural-language questions about this data by:
+1. **Natural-language question → SQL (via LLM)**
+2. **SQL executed on an in-memory SQLite database**
+3. **Retrieved rows/aggregates passed back to the LLM**
+4. **Final answer is generated strictly grounded in the retrieved data**
 
-1. Understanding the user's question.
-2. Retrieving the relevant rows/records from the tables.
-3. Using an LLM to generate a grounded answer based on those records.
+## The project includes:
+- A FastAPI backend (Text-to-SQL + execution)
+- A Streamlit frontend (UI)
+- An optional CLI client
+- Full Docker + Docker Compose setup for production-like execution
 
-You may assume all data fits in memory (no need for complex scaling).
+## Data
+The system operates on the following Excel files (included in the repository):
+- `Clients.xlsx` – client information (name, industry, country)
+- `Invoices.xlsx` – invoice headers (dates, status, currency, FX rates)
+- `InvoiceLineItems.xlsx` – invoice line items (service name, quantity, unit price, tax rate)
 
-## Examples of Questions the Chat Should Handle
+All data fits in memory, as assumed by the task.
 
-*(You don't have to hard-code exact answers, but your system should be able to answer questions of this type.)*
-
+## What the System Can Answer
+The chat can answer questions such as:
 - List all clients with their industries.
 - Which clients are based in the UK?
 - List all invoices issued in March 2024 with their statuses.
 - Which invoices are currently marked as "Overdue"?
-- For each service_name in InvoiceLineItems, how many line items are there?
-- List all invoices for Acme Corp with their invoice IDs, invoice dates, due dates, and statuses.
-- Show all invoices issued to Bright Legal in February 2024, including their status and currency.
-- For invoice I1001, list all line items with service name, quantity, unit price, tax rate, and compute the line total (including tax) for each.
-- For each client, compute the total amount billed in 2024 (including tax) across all their invoices.
-- Which client has the highest total billed amount in 2024, and what is that total?
+- For each service_name, how many line items are there?
+- List all invoices for Acme Corp with invoice IDs, dates, due dates, and statuses.
+- Show all invoices issued to Bright Legal in February 2024.
+- For invoice I1001, list all line items and compute totals including tax.
+- For each client, compute the total amount billed in 2024 (including tax).
+- Which client has the highest total billed amount in 2024?
 
-*(Optional/extra questions)*
-- Across all clients, which three services generated the most revenue in 2024? Show the total revenue per service.
-- Which invoices are overdue as of 2024-12-31? List invoice ID, client name, invoice_date, due_date, and status.
-- Group revenue by client country: for each country, compute the total billed amount in 2024 (including tax).
-- For the service “Contract Review”, list all clients who purchased it and the total amount they paid for that service (including tax).
-- Considering only European clients, what are the top 3 services by total revenue (including tax) in H2 2024 (2024-07-01 to 2024-12-31)?
+Optional / extended analytics are also supported (top services by revenue, overdue invoices as of a date, revenue by country, etc.).
 
-## Requirements
+None of these questions are hard-coded.
 
-### Architecture
+## Architecture Overview
 
-Implement a RAG-style pipeline where:
+### High-level flow
+```
+User (UI / CLI)
+      ↓
+FastAPI Backend
+      ↓
+Text-to-SQL (LLM)
+      ↓
+SQLite (SELECT execution)
+      ↓
+Result Table
+      ↓
+Answer Generation (LLM, grounded)
+```
 
-1. The system maps the user's question to some structured retrieval/code over the tables
-2. Retrieves relevant data (rows, aggregates, or both)
-3. Feeds that context to an LLM to generate the final answer.
+### Key design choice: Text-to-SQL
+Instead of manually routing questions to predefined pandas functions, the system uses an LLM to generate SQL based on:
+- The database schema
+- Explicit business rules (tax, FX conversion, revenue calculation)
 
-### LLM Usage
+This makes the solution flexible, extensible, and closer to real production systems.
 
-- You may use any LLM (open-source or API-based).
-- Unfortunately, we are not providing api key for the test task, but you can use https://console.groq.com/. There is a free plan, and some models are available for API requests.
-- The LLM should **not hallucinate numbers**; all numeric answers must come from actual data you've retrieved.
+## Project Structure
+```
+.
+├── data/
+│   ├── Clients.xlsx
+│   ├── Invoices.xlsx
+│   └── InvoiceLineItems.xlsx
+│
+├── tabular_rag/
+│   ├── data_loader.py
+│   ├── llm_client.py
+│   ├── sql_engine.py
+│   ├── text2sql_planner.py
+│   └── sql_chat_pipeline.py
+│
+├── backend_api.py          # FastAPI backend
+├── frontend_app.py         # Streamlit frontend
+├── cli_client.py           # Optional CLI client
+├── generate_test_results.py
+├── test_results.csv
+│
+├── docker/
+│   ├── backend.Dockerfile
+│   └── frontend.Dockerfile
+│
+├── docker-compose.yml
+├── requirements-common.txt
+├── requirements-backend.txt
+├── requirements-frontend.txt
+├── .env.example
+├── .gitignore
+└── README.md
+```
 
-### Interface *(OPTIONAL)*
+## Environment Configuration
 
-A simple interface is enough:
+### .env.example
+The repository includes an example environment file:
+```
+OPENAI_API_KEY=sk-your-openai-key-here
+OPENAI_MODEL=gpt-4.1-mini
+BACKEND_URL=http://backend:8000
+```
 
-- CLI, Jupyter notebook, or a minimal web UI (e.g. Streamlit / Gradio ).
+### Setup
+Create your own `.env` file:
+```bash
+cp .env.example .env
+```
+Edit `.env` and set your real OpenAI API key.
 
-### Time Budget
+**Do not commit `.env`.**
 
-Please spend no more than **5 hours** on this task.
+## Running the Full Application (Recommended)
 
-If you don't fully complete all ideas, that's OK. Focus on building a clear, working core and documenting trade-offs.
+### Prerequisites
+- Docker
+- Docker Compose
 
-## Deliverables
+### Start everything
+```bash
+docker compose up --build
+```
 
-1. Create a fork of this repo and push your solution with all required artefacts. Send the link to your repo to our recruiter.
+Expected behavior:
+- First build: ~2–3 minutes (dependency installation)
+- Backend API available at: `http://localhost:8000`
+- Frontend UI available at: `http://localhost:8501`
 
-2. A short README describing:
-   - How to run the project.
-   - High-level architecture/design.
-   - Assumptions and limitations.
+### Health check
+```bash
+curl http://localhost:8000/health
+```
+Expected response:
+```json
+{"status":"ok"}
+```
 
-3. Test Results Table with two columns in the root directory. Two columns:
-    - Question from the list above
-    - Answer (provided by the pipeline)
+## Frontend (Streamlit UI)
+Open in browser:
+```
+http://localhost:8501
+```
 
-## What We Will Look At
+The UI shows:
+- User question
+- Generated SQL
+- Retrieved rows (table)
+- Final grounded answer
 
-- How do you structure the RAG pipeline (retrieval + generation)?
-- How do you mitigate hallucinations / wrong numbers?
-- Code clarity and organization.
-- How do you document assumptions and limitations?
+This transparency helps verify correctness and grounding.
+
+## Backend API
+
+### Endpoint: `/ask`
+#### POST `/ask`
+Request:
+```json
+{
+  "question": "Which clients are based in the UK?",
+  "return_sql": true,
+  "return_rows": true,
+  "max_rows": 50
+}
+```
+Response:
+```json
+{
+  "question": "...",
+  "sql": "SELECT ...",
+  "answer": "...",
+  "rows": [...],
+  "num_rows": 2
+}
+```
+
+## CLI Client (Optional)
+You can also interact via CLI:
+```bash
+BACKEND_URL=http://localhost:8000 python cli_client.py
+```
+This CLI calls the backend API and prints:
+- Answer
+- Generated SQL
+
+## Test Results Table
+To generate answers for the official example questions:
+```bash
+python generate_test_results.py
+```
+This creates `test_results.csv` with two columns:
+- Question
+- Answer (generated by the pipeline)
+
+## Business Logic
+
+### Line total (including tax)
+```
+quantity * unit_price * (1 + tax_rate)
+```
+
+### Line total in USD
+```
+line_total * fx_rate_to_usd
+```
+
+Revenue calculations are performed using SQL aggregates, not by the LLM.
+
+## Hallucination Mitigation
+The system is designed to avoid numeric hallucinations:
+- LLM generates SQL, not numbers.
+- All computations happen in SQLite.
+- The LLM only sees retrieved rows/aggregates.
+- If data is missing, the model is instructed to say so explicitly.
+
+## Assumptions & Limitations
+- All data fits in memory.
+- Read-only analytical queries only (SELECT).
+- No authentication or authorization layer.
+- LLM quality affects Text-to-SQL accuracy.
+- Optimized for clarity and correctness rather than large-scale deployment.
+
+## Switching LLM Providers
+All LLM calls are centralized in `llm_client.py`.
+To switch providers (e.g. OpenAI → Groq):
+- Replace the client implementation
+- Update environment variables
+
+No other code changes required.
+
+## Summary
+This project demonstrates:
+- A clean Text-to-SQL RAG architecture
+- Strong grounding and hallucination mitigation
+- Clear separation between retrieval and generation
+- Production-style execution using Docker Compose
+- Simple, inspectable UI and API
+
+The solution prioritizes correctness, transparency, and maintainability.

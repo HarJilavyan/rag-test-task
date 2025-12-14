@@ -1,0 +1,13 @@
+# Core data handling
+pandas
+openpyxl
+
+# Environment variables
+python-dotenv
+
+# LLM
+openai
+
+# Backend API
+fastapi
+uvicorn[standard]
